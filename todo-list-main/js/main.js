@@ -161,7 +161,7 @@ class UIManager {
       this.todosListBody.innerHTML = "";
       
       if (todos.length === 0) {
-          this.todosListBody.innerHTML = `<tr><td colspan="5" class="text-center">No task found</td></tr>`;
+          this.todosListBody.innerHTML = `<tr><td colspan="5" class="text-center">No Task Found</td></tr>`;
           return;
         }
         
