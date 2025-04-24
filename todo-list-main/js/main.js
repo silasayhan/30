@@ -141,7 +141,7 @@ class UIManager {
       this.showAllTodos();
       this.taskInput.value = "";
       this.dateInput.value = "";
-      this.showAlertMessage("Task added successfully", "success");
+      this.showAlertMessage("Task Added Successfully", "success");
     }
   }
 
