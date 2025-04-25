@@ -221,7 +221,7 @@ this.showAllTodos();
 
 handleDeleteTodo(id) {
 this.todoManager.deleteTodo(id);
-this.showAlertMessage("Todo deleted successfully", "success");
+this.showAlertMessage("To Do Deleted Successfully!", "success");
 this.showAllTodos();
 }
 
