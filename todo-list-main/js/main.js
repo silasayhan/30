@@ -1,301 +1,195 @@
-// Abstract class for TodoItemFormatter
 class TodoItemFormatter {
-  formatTask(task) {
-    return task.length > 14 ? task.slice(0, 14) + "..." : task;
-  }
-
-  formatDueDate(dueDate) {
-    return dueDate || "No due date";
-  }
-
-  formatStatus(completed) {
-    return completed ? "Completed" : "Pending";
+  format(todo) {
+    const checkedClass = todo.completed ? "line-through text-gray-500" : "";
+    const dueDateHtml = todo.dueDate
+      ? `<span class="text-xs text-gray-400">(${todo.dueDate})</span>`
+      : "";
+    return `<span class="${checkedClass}">${todo.text} ${dueDateHtml}</span>`;
   }
 }
 
-// Class responsible for managing Todo items
 class TodoManager {
-  constructor(todoItemFormatter) {
+  constructor() {
     this.todos = JSON.parse(localStorage.getItem("todos")) || [];
-    this.todoItemFormatter = todoItemFormatter;
   }
 
-  addTodo(task, dueDate) {
-    const newTodo = {
-      id: this.getRandomId(),
-      task: this.todoItemFormatter.formatTask(task),
-      dueDate: this.todoItemFormatter.formatDueDate(dueDate),
+  addTodo(text, dueDate) {
+    if (!text.trim()) return;
+    this.todos.push({
+      text: text.trim(),
       completed: false,
-      status: "pending",
-    };
-    this.todos.push(newTodo);
-    this.saveToLocalStorage();
-    return newTodo;
+      dueDate: dueDate || null,
+    });
+    this.saveTodos();
   }
 
-  editTodo(id, updatedTask) {
-      const todo = this.todos.find((t) => t.id === id);
-      if (todo) {
-        todo.task = updatedTask;
-        this.saveToLocalStorage();
-      }
-      return todo;
+  editTodo(index, newText, newDueDate) {
+    if (!newText.trim()) return;
+    this.todos[index].text = newText.trim();
+    this.todos[index].dueDate = newDueDate || null;
+    this.saveTodos();
+  }
+
+  deleteTodo(index) {
+    this.todos.splice(index, 1);
+    this.saveTodos();
+  }
+
+  toggleComplete(index) {
+    this.todos[index].completed = !this.todos[index].completed;
+    this.saveTodos();
+  }
+
+  clearAll() {
+    this.todos = [];
+    this.saveTodos();
+  }
+
+  filterTodos(filter) {
+    switch (filter) {
+      case "pending":
+        return this.todos.filter((t) => !t.completed);
+      case "completed":
+        return this.todos.filter((t) => t.completed);
+      default:
+        return this.todos;
     }
-  
-    deleteTodo(id) {
-      this.todos = this.todos.filter((todo) => todo.id !== id);
-      this.saveToLocalStorage();
-    }
-  
-    toggleTodoStatus(id) {
-      const todo = this.todos.find((t) => t.id === id);
-      if (todo) {
-        todo.completed = !todo.completed;
-        this.saveToLocalStorage();
-      }
-    }
-  
-    clearAllTodos() {
-      if (this.todos.length > 0) {
-        this.todos = [];
-        this.saveToLocalStorage();
-      }
-    }
-  
-    filterTodos(status) {
-      switch (status) {
-        case "all":
-          return this.todos;
-        case "pending":
-          return this.todos.filter((todo) => !todo.completed);
-        case "completed":
-          return this.todos.filter((todo) => todo.completed);
-        default:
-          return [];
-      }
-    }
-  
-    getRandomId() {
-      return (
-        Math.random().toString(36).substring(2, 15) +
-        Math.random().toString(36).substring(2, 15)
-      );
-    }
-  
-    saveToLocalStorage() {
-      localStorage.setItem("todos", JSON.stringify(this.todos));
-    }
+  }
+
+  sortTodosByDate() {
+    this.todos.sort((a, b) => {
+      const dateA = a.dueDate ? new Date(a.dueDate) : new Date(0);
+      const dateB = b.dueDate ? new Date(b.dueDate) : new Date(0);
+      return dateA - dateB;
+    });
+  }
+
+  saveTodos() {
+    localStorage.setItem("todos", JSON.stringify(this.todos));
+  }
 }
 
-// Class responsible for managing the UI and handling events
-class UIManager {
-  constructor(todoManager, todoItemFormatter) {
-    this.todoManager = todoManager;
-    this.todoItemFormatter = todoItemFormatter;
-    this.taskInput = document.querySelector("input");
-    this.dateInput = document.querySelector(".schedule-date");
-    this.addBtn = document.querySelector(".add-task-button");
-    this.todosListBody = document.querySelector(".todos-list-body");
-    this.alertMessage = document.querySelector(".alert-message");
-    this.deleteAllBtn = document.querySelector(".delete-all-btn");
+class ThemeSwitcher {
+  constructor() {
+    if (ThemeSwitcher.instance) return ThemeSwitcher.instance;
+    this.themeSelect = document.getElementById("theme-select");
+    this.applySavedTheme();
+    this.themeSelect.addEventListener("change", (e) =>
+      this.changeTheme(e.target.value)
+    );
+    ThemeSwitcher.instance = this;
+  }
 
-  this.addEventListeners();
-  this.showAllTodos();
+  applySavedTheme() {
+    const savedTheme = localStorage.getItem("theme") || "light";
+    this.changeTheme(savedTheme);
+    this.themeSelect.value = savedTheme;
+  }
+
+  changeTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  }
+}
+
+class UIManager {
+  constructor(todoManager, formatter) {
+    this.todoManager = todoManager;
+    this.formatter = formatter;
+    this.input = document.getElementById("todo-input");
+    this.dateInput = document.getElementById("todo-date");
+    this.list = document.getElementById("todo-list");
+    this.filterSelect = document.getElementById("filter-select");
+    this.clearBtn = document.getElementById("clear-btn");
+
+    this.addEventListeners();
+    this.displayTodos();
   }
 
   addEventListeners() {
-      // Event listener for adding a new todo
-      this.addBtn.addEventListener("click", () => {
-          this.handleAddTodo();
-      });
-
-      // Event listener for pressing Enter key in the task input
-      this.taskInput.addEventListener("keyup", (e) => {
-          if (e.keyCode === 13 && this.taskInput.value.length > 0) {
-              this.handleAddTodo();
-          }
-      });
-
-      // Event listener for deleting all todos
-      this.deleteAllBtn.addEventListener("click", () => {
-          this.handleClearAllTodos();
-      });
-
-      // Event listeners for filter buttons
-      const filterButtons = document.querySelectorAll(".todos-filter li");
-      filterButtons.forEach((button) => {
-          button.addEventListener("click", () => {
-              const status = button.textContent.toLowerCase();
-              this.handleFilterTodos(status);
-          });
-      });
-  }
-
-  handleAddTodo() {
-    const task = this.taskInput.value;
-    const dueDate = this.dateInput.value;
-    if (task === "") {
-      this.showAlertMessage("Please enter a task", "error");
-    } else {
-      const newTodo = this.todoManager.addTodo(task, dueDate);
-      this.showAllTodos();
-      this.taskInput.value = "";
-      this.dateInput.value = "";
-      this.showAlertMessage("Task Added Successfully", "success");
-    }
-  }
-
-  handleClearAllTodos() {
-    this.todoManager.clearAllTodos();
-    this.showAllTodos();
-    this.showAlertMessage("All todos cleared successfully", "success");
-  }
-
-  showAllTodos() {
-    const todos = this.todoManager.filterTodos("all");
-    this.displayTodos(todos);
-  }
-
-  displayTodos(todos) {
-
-      this.todosListBody.innerHTML = "";
-      
-      if (todos.length === 0) {
-          this.todosListBody.innerHTML = `<tr><td colspan="5" class="text-center">No Tasks Found</td></tr>`;
-          return;
-        }
-        
-      todos.forEach((todo) => {
-        this.todosListBody.innerHTML += `
-          <tr class="todo-item" data-id="${todo.id}">
-            <td>${this.todoItemFormatter.formatTask(todo.task)}</td>
-            <td>${this.todoItemFormatter.formatDueDate(todo.dueDate)}</td>
-            <td>${this.todoItemFormatter.formatStatus(todo.completed)}</td>
-            <td>
-              <button class="btn btn-warning btn-sm" onclick="uiManager.handleEditTodo('${
-                todo.id
-              }')">
-                <i class="bx bx-edit-alt bx-bx-xs"></i>    
-              </button>
-              <button class="btn btn-success btn-sm" onclick="uiManager.handleToggleStatus('${
-                todo.id
-              }')">
-                <i class="bx bx-check bx-xs"></i>
-              </button>
-              <button class="btn btn-error btn-sm" onclick="uiManager.handleDeleteTodo('${
-                todo.id
-              }')">
-                <i class="bx bx-trash bx-xs"></i>
-              </button>
-            </td>
-          </tr>
-        `;
-      });
-    }
-    
-
-  
-handleEditTodo(id) {
-  const todo = this.todoManager.todos.find((t) => t.id === id);
-  if (todo) {
-    this.taskInput.value = todo.task;
-    this.todoManager.deleteTodo(id);
-
-    const handleUpdate = () => {
-      this.addBtn.innerHTML = "<i class='bx bx-plus bx-sm'></i>";
-      this.showAlertMessage("Todo updated successfully", "success");
-      this.showAllTodos();
-      this.addBtn.removeEventListener("click", handleUpdate);
-    };
-
-    this.addBtn.innerHTML = "<i class='bx bx-check bx-sm'></i>";
-    this.addBtn.addEventListener("click", handleUpdate);
-  }
-}
-
-
-handleToggleStatus(id) {
-this.todoManager.toggleTodoStatus(id);
-this.showAllTodos();
-}
-
-handleDeleteTodo(id) {
-this.todoManager.deleteTodo(id);
-this.showAlertMessage("To Do Deleted Successfully!", "success");
-this.showAllTodos();
-}
-
-
-handleFilterTodos(status) {
-  const filteredTodos = this.todoManager.filterTodos(status);
-  this.displayTodos(filteredTodos);
-}
-
-
-showAlertMessage(message, type) {
-const alertBox = `
-  <div class="alert alert-${type} shadow-lg mb-5 w-full">
-    <div>
-      <span>${message}</span>
-    </div>
-  </div>
-`;
-this.alertMessage.innerHTML = alertBox;
-this.alertMessage.classList.remove("hide");
-this.alertMessage.classList.add("show");
-setTimeout(() => {
-  this.alertMessage.classList.remove("show");
-  this.alertMessage.classList.add("hide");
-}, 3000);
-}
-}
-
-// Class responsible for managing the theme switcher
-class ThemeSwitcher {
-constructor(themes, html) {
-  this.themes = themes;
-  this.html = html;
-  this.init();
-}
-
-init() {
-  const theme = this.getThemeFromLocalStorage();
-  if (theme) {
-    this.setTheme(theme);
-  }
-
-  this.addThemeEventListeners();
-}
-
-addThemeEventListeners() {
-  this.themes.forEach((theme) => {
-    theme.addEventListener("click", () => {
-      const themeName = theme.getAttribute("theme");
-      this.setTheme(themeName);
-      this.saveThemeToLocalStorage(themeName);
+    document.getElementById("add-btn").addEventListener("click", () => {
+      this.todoManager.addTodo(this.input.value, this.dateInput.value);
+      this.clearInputs();
+      this.displayTodos();
     });
-  });
+
+    this.input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        this.todoManager.addTodo(this.input.value, this.dateInput.value);
+        this.clearInputs();
+        this.displayTodos();
+      }
+    });
+
+    this.filterSelect.addEventListener("change", () => this.displayTodos());
+    this.clearBtn.addEventListener("click", () => {
+      this.todoManager.clearAll();
+      this.displayTodos();
+    });
+  }
+
+  displayTodos() {
+    this.todoManager.sortTodosByDate(); // 👈 Sıralama Burada Yapılıyor
+    const filtered = this.todoManager.filterTodos(this.filterSelect.value);
+    this.list.innerHTML = "";
+    filtered.forEach((todo, index) => {
+      const li = document.createElement("li");
+      li.className =
+        "flex justify-between items-center p-2 border-b border-gray-200";
+
+      const span = document.createElement("span");
+      span.innerHTML = this.formatter.format(todo);
+      li.appendChild(span);
+
+      const btnGroup = document.createElement("div");
+
+      const completeBtn = this.createIconButton("✔️", () => {
+        this.todoManager.toggleComplete(index);
+        this.displayTodos();
+      });
+
+      const editBtn = this.createIconButton("✏️", () => {
+        const newText = prompt("Edit task:", todo.text);
+        const newDate = prompt("Edit due date:", todo.dueDate || "");
+        if (newText !== null) {
+          this.todoManager.editTodo(index, newText, newDate);
+          this.displayTodos();
+        }
+      });
+
+      const deleteBtn = this.createIconButton("🗑️", () => {
+        this.todoManager.deleteTodo(index);
+        this.displayTodos();
+      });
+
+      btnGroup.appendChild(completeBtn);
+      btnGroup.appendChild(editBtn);
+      btnGroup.appendChild(deleteBtn);
+
+      li.appendChild(btnGroup);
+      this.list.appendChild(li);
+    });
+  }
+
+  createIconButton(icon, action) {
+    const btn = document.createElement("button");
+    btn.innerHTML = icon;
+    btn.className =
+      "text-sm ml-2 hover:scale-110 transition-transform duration-200";
+    btn.addEventListener("click", action);
+    return btn;
+  }
+
+  clearInputs() {
+    this.input.value = "";
+    this.dateInput.value = "";
+  }
 }
 
-setTheme(themeName) {
-  this.html.setAttribute("data-theme", themeName);
-}
-
-saveThemeToLocalStorage(themeName) {
-  localStorage.setItem("theme", themeName);
-}
-
-getThemeFromLocalStorage() {
-  return localStorage.getItem("theme");
-}
-}
-
-
-
-// Instantiating the classes
-const todoItemFormatter = new TodoItemFormatter();
-const todoManager = new TodoManager(todoItemFormatter);
-const uiManager = new UIManager(todoManager, todoItemFormatter);
-const themes = document.querySelectorAll(".theme-item");
-const html = document.querySelector("html");
-const themeSwitcher = new ThemeSwitcher(themes, html);
+// Giriş Noktası
+document.addEventListener("DOMContentLoaded", () => {
+  const todoManager = new TodoManager();
+  const formatter = new TodoItemFormatter();
+  new UIManager(todoManager, formatter);
+  new ThemeSwitcher();
+});
