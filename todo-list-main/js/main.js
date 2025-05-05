@@ -129,6 +129,16 @@ class UIManager {
   renderTodos() {
     const filter = this.filterSelect.value;
     const todos = this.todoManager.getFilteredTodos(filter);
+
+    if (todos.length === 0) {
+      this.todoList.innerHTML = `
+        <div class="text-center mt-4 text-lg font-semibold text-gray-500">
+          Görev kutun boş! Hadi bugün bir şeyler başaralım 💪✨
+        </div>
+      `;
+      return;
+    }
+
     this.todoList.innerHTML = todos.map(todo => this.formatter.format(todo)).join('');
   }
 }
