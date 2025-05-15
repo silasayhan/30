@@ -2,51 +2,32 @@
 <html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>TO-DOIT</title>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.20/dist/full.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.20/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css" />
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet" />
+    <link href="style.css" rel="stylesheet" />
   </head>
-  <body class="p-4">
-    <main class="max-w-xl mx-auto">
-      <h1 class="text-3xl font-bold text-center mb-2">TO-DOIT</h1>
-      <!-- ✅ Tamamlanan görev sayacı -->
-      <div id="completed-count" class="text-center text-sm text-gray-500 mb-4">Completed tasks: 0</div>
+  <body class="bg-base-100 text-base-content">
+    <div class="container mx-auto px-4 py-8">
+      <header class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold">TO-DOIT</h1>
+        <button id="theme-toggle" class="btn btn-ghost text-xl">
+          <i class="bx bx-palette"></i>
+        </button>
+      </header>
 
-      <div class="mb-4 flex gap-2">
-        <input id="task-input" type="text" placeholder="Enter your task..." class="input input-bordered w-full" />
-        <input id="date-input" type="date" class="input input-bordered" />
-        <button id="add-task-btn" class="btn btn-primary"><i class="bx bx-plus"></i></button>
-      </div>
+      <form id="todo-form" class="flex gap-2 mb-4">
+        <input type="text" id="todo-input" class="input input-bordered w-full" placeholder="Add a new task" required />
+        <input type="date" id="todo-date" class="input input-bordered" />
+        <button type="submit" class="btn btn-primary">+</button>
+      </form>
 
-      <div class="flex justify-between mb-2">
-        <select id="filter" class="select select-bordered select-sm">
-          <option value="all">All</option>
-          <option value="pending">Pending</option>
-          <option value="completed">Completed</option>
-        </select>
-        <button id="delete-all-btn" class="btn btn-sm btn-error text-white">Delete All</button>
-      </div>
+      <div id="alert-container"></div>
 
-      <ul id="task-list" class="space-y-2"></ul>
-
-      <!-- Tema seçici -->
-      <div class="fixed bottom-4 right-4">
-        <details class="dropdown dropdown-top dropdown-end">
-          <summary class="btn btn-ghost"><i class="bx bx-palette text-2xl"></i></summary>
-          <ul class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52 theme-list">
-            <li><a data-set-theme="light">Light</a></li>
-            <li><a data-set-theme="dark">Dark</a></li>
-            <li><a data-set-theme="cupcake">Cupcake</a></li>
-            <li><a data-set-theme="bumblebee">Bumblebee</a></li>
-            <li><a data-set-theme="valentine">Valentine</a></li>
-          </ul>
-        </details>
-      </div>
-    </main>
+      <div class="space-y-4" id="todo-list"></div>
+    </div>
 
     <script src="js/main.js"></script>
   </body>
