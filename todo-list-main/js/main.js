@@ -118,7 +118,7 @@ class UIManager {
   }
 
   deleteTodo(index) {
-    if (confirm("Bu görevi silmek istiyor musunuz?")) {
+    if (confirm("Bu Gorevi Silmek Istiyor Musunuz?")) {
       this.manager.delete(index);
       this.render();
     }
