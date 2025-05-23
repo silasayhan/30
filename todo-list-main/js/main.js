@@ -55,8 +55,8 @@ class TodoManager {
     return this.todos.reduce((acc, todo, index) => {
       const date = todo.date ? new Date(todo.date).toDateString() : "Gelecek";
       const key =
-        date === today ? "Bugün" :
-        date === tomorrowStr ? "Yarın" : "Gelecek";
+        date === today ? "Bugun" :
+        date === tomorrowStr ? "Yarin" : "Gelecek";
 
       if (!acc[key]) acc[key] = [];
       acc[key].push({ todo, index });
@@ -94,7 +94,7 @@ class UIManager {
     this.list.innerHTML = "";
 
     const grouped = this.manager.groupByDate();
-    const groups = ["Bugün", "Yarın", "Gelecek"];
+    const groups = ["Bugun", "Yarin", "Gelecek"];
 
     groups.forEach((group) => {
       if (grouped[group] && grouped[group].length > 0) {
@@ -110,7 +110,7 @@ class UIManager {
   }
 
   editTodo(index) {
-    const updatedText = prompt("Yeni metni girin:", this.manager.todos[index].text);
+    const updatedText = prompt("Yeni Metni Girin:", this.manager.todos[index].text);
     if (updatedText !== null) {
       this.manager.update(index, { ...this.manager.todos[index], text: updatedText });
       this.render();
