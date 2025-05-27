@@ -138,7 +138,7 @@ class ThemeSwitcher {
       this.applyTheme(this.currentTheme);
 
       this.button.onclick = () => {
-        this.currentTheme = this.currentTheme === "dark" ? "light" : "dark";
+        this.currentTheme = this.currentTheme === "light" ? "dark" : "dark";
         this.applyTheme(this.currentTheme);
       };
 
