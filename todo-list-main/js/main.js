@@ -110,7 +110,7 @@ class UIManager {
   }
 
   editTodo(index) {
-    const updatedText = prompt("Yeni Metni Girin:", this.manager.todos[index].text);
+    const updatedText = prompt("Yeni Metni Giriniz:", this.manager.todos[index].text);
     if (updatedText !== null) {
       this.manager.update(index, { ...this.manager.todos[index], text: updatedText });
       this.render();
